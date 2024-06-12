@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
-import { Input, InputNumber, Empty, Select } from "antd";
+import { Input, InputNumber, Empty, Select, Button } from "antd";
 import Header from "@/components/Header";
 import CKeditor from "@/components/CKEditor";
 import RowProductVariant from "@/components/UpdateProductPage/RowProductVariant";
@@ -53,7 +53,15 @@ const UpdateProductPage = () => {
     try {
       setIsLoading(true);
       const result = await axios.get(`${homeAPI}/products/${product_id}`);
-      const { id, nameProduct, categoryID, name, price, description, product_variant_list } = result.data;
+      const {
+        id,
+        nameProduct,
+        categoryID,
+        name,
+        price,
+        description,
+        product_variant_list,
+      } = result.data;
       setProductField({
         productId: id,
         productName: nameProduct,
@@ -96,12 +104,12 @@ const UpdateProductPage = () => {
           sizeName: variant.size,
           quantity: variant.quantity,
           price: variant.price,
-          priceSale: variant.priceSale,
+          priceSale: variant.price_sale,
           type: variant.type,
           SKU: variant.SKU,
-          isActive: variant.isActive,
-          createdAt: variant.createdAt,
-          updatedAt: variant.updatedAt,
+          isActive: variant.is_active,
+          createdAt: variant.created_at,
+          updatedAt: variant.updated_at,
           fileList,
         };
       })
@@ -133,9 +141,13 @@ const UpdateProductPage = () => {
             variant.fileList.forEach((file) => {
               data.append("product_images", file.originFileObj);
             });
-            await axios.put(`${homeAPI}/products/${product_id}/variants/${variant.productVariantId}`, data, {
-              headers: { "Content-Type": "multipart/form-data" },
-            });
+            await axios.put(
+              `${homeAPI}/products/${product_id}/variants/${variant.productVariantId}`,
+              data,
+              {
+                headers: { "Content-Type": "multipart/form-data" },
+              }
+            );
           })
         );
 
@@ -263,25 +275,25 @@ const UpdateProductPage = () => {
                 <th className="col-created-at text-center">Created At</th>
                 <th className="col-updated-at text-center">Updated At</th>
                 <th className="col-image text-center">Image</th>
-                <th className="col-delete text-center"></th>
+                <th className="col-delete text-center">Delete</th>
               </tr>
             </thead>
             <tbody>
               {productVariantList.length ? (
-                productVariantList.map((variant, index) => (
+                productVariantList.map((item, index) => (
                   <RowProductVariant
                     key={index}
                     index={index}
-                    ProductId={productField.productId}
                     productVariantList={productVariantList}
                     setProductVariantList={setProductVariantList}
                     setIsLoading={setIsLoading}
                     refreshPage={fetchProduct}
+                    productId={product_id}
                   />
                 ))
               ) : (
                 <tr>
-                  <td colSpan={12}>
+                  <td colSpan="12">
                     <Empty />
                   </td>
                 </tr>
@@ -289,16 +301,10 @@ const UpdateProductPage = () => {
             </tbody>
           </table>
         </div>
-        <button type="submit" className="btn btn-primary">
-          Update Product
-        </button>
+        <Button type="primary" htmlType="submit" loading={isLoading}>
+          Update
+        </Button>
       </form>
-      <div className="container d-flex justify-content-center">
-        <button className="btn btn-primary" onClick={() => router.push("/")}>
-          Back To Home
-        </button>
-      </div>
-      {isLoading && <Loading />}
     </div>
   );
 };

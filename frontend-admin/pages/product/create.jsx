@@ -15,7 +15,7 @@ const CreateProductPage = () => {
     const [thumbnail, setThumbnail] = useState('');
     const [categoryId, setCategoryId] = useState('');
     const [categoryName, setCategoryName] = useState('');
-    const [price, setPrice] = useState(0);
+    const [price, setPrice] = useState('');
     const [description, setDescription] = useState('');
     const [selectedColours, setSelectedColours] = useState([]);
     const [selectedSizes, setSelectedSizes] = useState([]);
@@ -58,7 +58,8 @@ const CreateProductPage = () => {
                 size: size.size,
                 quantity: '',
                 fileList: [],
-                price: 0,
+                price: '',
+                price_sale:'',
                 type: 'default'
             }))
         );
@@ -84,7 +85,7 @@ const CreateProductPage = () => {
                 const newProduct = {
                     nameProduct: productName,
                     price,
-                    thumbnail,
+                    thumbnail: thumbnail,
                     categoryID: categoryId,
                     description
                 };
@@ -94,10 +95,11 @@ const CreateProductPage = () => {
                 await Promise.all(productVariantList.map(async (variant) => {
                     const dataProductVariant = new FormData();
                     dataProductVariant.append('product_id', productID); // Ensure correct column name
-                    dataProductVariant.append('colorID', variant.colorID);
-                    dataProductVariant.append('sizeID', variant.sizeID);
+                    dataProductVariant.append('color_id', variant.colorID);
+                    dataProductVariant.append('size_id', variant.sizeID);
                     dataProductVariant.append('quantity', variant.quantity);
                     dataProductVariant.append('price', variant.price);
+                    dataProductVariant.append('price_sale', variant.price_sale);
                     dataProductVariant.append('type', variant.type);
 
                     for (let file of variant.fileList) {
@@ -273,9 +275,10 @@ const CreateProductPage = () => {
                                 <th className='col-colour text-center' scope="col">Màu</th>
                                 <th className='col-size text-center' scope="col">Size</th>
                                 <th className='col-quantity text-center' scope="col">Tồn kho</th>
-                                {/* <th className='col-price text-center' scope="col">Giá</th>
-                                <th className='col-type text-center' scope="col">Loại</th> */}
-                                <th className='col-image text-center' scope="col">Ảnh</th>
+                                <th className='col-price text-center' scope="col">Giá</th>
+                                <th className='col-price_sale text-center' scope="col">Giá Sale</th>
+                                {/* <th className='col-type text-center' scope="col">Loại</th> */}
+                                <th className='col-image text-center' scope="col" style={{ width: '55%' }}>Ảnh</th>
                             </tr>
                         </thead>
                         <tbody>
