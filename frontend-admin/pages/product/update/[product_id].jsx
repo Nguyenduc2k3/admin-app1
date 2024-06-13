@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import Router from 'next/router'
 import axios from "axios";
 import { Input, InputNumber, Empty, Select, Button } from "antd";
 import Header from "@/components/Header";
@@ -55,8 +56,8 @@ const UpdateProductPage = () => {
       const result = await axios.get(`${homeAPI}/products/${product_id}`);
       const {
         id,
-        nameProduct,
-        categoryID,
+        name_product,
+        category_id,
         name,
         price,
         description,
@@ -64,8 +65,8 @@ const UpdateProductPage = () => {
       } = result.data;
       setProductField({
         productId: id,
-        productName: nameProduct,
-        categoryId: categoryID,
+        productName: name_product,
+        categoryId: category_id,
         categoryName: name,
         price,
         description,
@@ -123,8 +124,8 @@ const UpdateProductPage = () => {
         setIsLoading(true);
         const updateProductData = {
           id: productField.productId,
-          nameProduct: productField.productName,
-          categoryID: productField.categoryId,
+          name_product: productField.productName,
+          category_id: productField.categoryId,
           price: productField.price,
           description: productField.description,
         };
@@ -152,6 +153,7 @@ const UpdateProductPage = () => {
         );
 
         swtoast.success({ text: "Cập nhật sản phẩm thành công!" });
+        Router.push('/product/manage')
         fetchProduct();
       } catch (error) {
         console.error("Failed to update product:", error);

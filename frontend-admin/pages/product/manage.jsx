@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { Empty, Spin, Alert } from 'antd';
+import { Empty, Spin, Alert, Pagination, Button } from 'antd';
 import axios from 'axios';
 
 import Header from '@/components/Header';
@@ -14,39 +14,17 @@ const ProductManagementPage = () => {
     const [listProductVariant, setListProductVariant] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const productsPerPage = 10;
     const dispatch = useDispatch();
 
     useEffect(() => {
-        const getListProductVariant = async () => {
-            try {
-                const [productResult, imagesResult] = await Promise.all([
-                    axios.get('http://localhost:8000/api/products'),
-                    axios.get('http://localhost:8000/api/product-images')
-                ]);
-
-                const products = productResult.data;
-                const images = imagesResult.data;
-
-                const productsWithImages = products.map(product => {
-                    const productImage = images.find(img => img.product_id === product.id);
-                    return {
-                        ...product,
-                        imageUrl: productImage ? productImage.url : null
-                    };
-                });
-
-                setListProductVariant(productsWithImages);
-            } catch (err) {
-                setError('Failed to fetch product variants or images. Please try again.');
-            } finally {
-                setLoading(false);
-            }
-        };
-        getListProductVariant();
+        fetchProductVariants();
     }, []);
 
-    const refreshProductVariantTable = async () => {
+    const fetchProductVariants = async () => {
         setLoading(true);
+        setError(null);
         try {
             const [productResult, imagesResult] = await Promise.all([
                 axios.get('http://localhost:8000/api/products'),
@@ -65,21 +43,31 @@ const ProductManagementPage = () => {
             });
 
             setListProductVariant(productsWithImages);
+            setCurrentPage(1); // Reset to the first page on data fetch
         } catch (err) {
-            setError('Failed to refresh product variants or images. Please try again.');
+            setError('Failed to fetch product variants or images. Please try again.');
         } finally {
             setLoading(false);
         }
     };
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
+
+    const currentProducts = listProductVariant.slice(
+        (currentPage - 1) * productsPerPage,
+        currentPage * productsPerPage
+    );
 
     return (
         <div className="product-manager">
             <Header title="Quản lý sản phẩm" />
             <div className="wrapper manager-box">
                 <div className="to-add-product-page">
-                    <button onClick={() => Router.push('/product/create')} className="to-add-product-page-btn">
+                    <Button onClick={() => Router.push('/product/create')} type="primary">
                         Thêm sản phẩm
-                    </button>
+                    </Button>
                 </div>
                 <Heading title="Tất cả sản phẩm" />
                 <div className="wrapper-product-admin table-responsive">
@@ -107,31 +95,41 @@ const ProductManagementPage = () => {
                                         <th title="Thao tác" className="col-action manipulation">Thao tác</th>
                                     </tr>
                                 </thead>
-                            </table>
-                            {listProductVariant.length ? (
-                                listProductVariant.map((productVariant, index) => (
-                                    <ProductAdmin
-                                        key={index}
-                                        product_id={productVariant.id}
-                                        product_variant_id={productVariant.product_variant_id}
-                                        product_name={productVariant.name_product}
-                                        product_image={productVariant.imageUrl}
-                                        colour_name={productVariant.color}
-                                        size_name={productVariant.size}
-                                        price={productVariant.price}
-                                        quantity={productVariant.quantity}
-                                        state={productVariant.state}
-                                        created_at={productVariant.created_at}
-                                        refreshProductVariantTable={refreshProductVariantTable}
-                                    />
-                                ))
-                            ) : (
-                                <table className="table w-100 table-hover align-middle table-bordered" style={{ height: "400px" }}>
-                                    <tbody>
-                                        <tr><td colSpan={6}><Empty /></td></tr>
-                                    </tbody>
                                 </table>
-                            )}
+                                    {currentProducts.length ? (
+                                        currentProducts.map((productVariant, index) => (
+                                            <ProductAdmin
+                                                key={index}
+                                                product_id={productVariant.id}
+                                                product_variant_id={productVariant.product_variant_id}
+                                                product_name={productVariant.name_product}
+                                                product_image={productVariant.imageUrl}
+                                                colour_name={productVariant.color}
+                                                size_name={productVariant.size}
+                                                price={productVariant.price}
+                                                quantity={productVariant.quantity}
+                                                state={productVariant.state}
+                                                created_at={productVariant.created_at}
+                                                refreshProductVariantTable={fetchProductVariants}
+                                            />
+                                        ))
+                                    ) : 
+                                        <table className="table w-100 table-hover align-middle table-bordered" style={{ height: "400px" }}>
+                                            <tbody>
+                                                <tr><td colSpan={6}><Empty /></td></tr>
+                                            </tbody>
+                                        </table>
+                                    }
+                                
+                            
+                            <Pagination
+                                current={currentPage}
+                                pageSize={productsPerPage}
+                                total={listProductVariant.length}
+                                onChange={handlePageChange}
+                                showSizeChanger={false}
+                                style={{ textAlign: 'center', marginTop: '20px' }}
+                            />
                         </>
                     )}
                 </div>

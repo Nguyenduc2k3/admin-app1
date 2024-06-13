@@ -1,68 +1,79 @@
 import React from 'react';
-import { InputNumber } from 'antd';
+import { InputNumber, Input } from 'antd';
 
 import UploadImageBox from '@/components/UploadImageBox';
 
 const RowProductVariant = ({ index, productVariantList, setProductVariantList }) => {
 
     const handleQuantityChange = (value) => {
-        let productVariantListClone = [...productVariantList];
-        productVariantListClone[index].quantity = value;
-        setProductVariantList(productVariantListClone);
+        const updatedProductVariantList = [...productVariantList];
+        updatedProductVariantList[index].quantity = value;
+        setProductVariantList(updatedProductVariantList);
     }
 
     const handlePriceChange = (value) => {
-        let productVariantListClone = [...productVariantList];
-        productVariantListClone[index].price = value;
-        setProductVariantList(productVariantListClone);
+        const updatedProductVariantList = [...productVariantList];
+        updatedProductVariantList[index].price = value;
+        setProductVariantList(updatedProductVariantList);
     }
 
     const handlePriceSaleChange = (value) => {
-        let productVariantListClone = [...productVariantList];
-        productVariantListClone[index].price_sale = value;
-        setProductVariantList(productVariantListClone);
+        const updatedProductVariantList = [...productVariantList];
+        updatedProductVariantList[index].price_sale = value;
+        setProductVariantList(updatedProductVariantList);
+    }
+
+    const handleSKUChange = (e) => {
+        const updatedProductVariantList = [...productVariantList];
+        updatedProductVariantList[index].SKU = e.target.value;
+        setProductVariantList(updatedProductVariantList);
     }
 
     return (
-        <>
-            <tr className='row-product-variant'>
-                <td className='col-colour text-center'>
-                    {productVariantList[index].color}
-                </td>
-                <td className='col-size text-center'>
-                    {productVariantList[index].size}
-                </td>
-                <td className='col-quantity text-center'>
-                    <InputNumber
-                        value={productVariantList[index].quantity}
-                        style={{ width: '100%' }}
-                        onChange={handleQuantityChange}
-                    />
-                </td>
-                <td className='col-price text-center'>
-                    <InputNumber
-                        value={productVariantList[index].price}
-                        style={{ width: '100%' }}
-                        onChange={handlePriceChange}
-                    />
-                </td>
-                <td className='col-price_sale text-center'>
-                    <InputNumber
-                        value={productVariantList[index].price_sale}
-                        style={{ width: '100%' }}
-                        onChange={handlePriceSaleChange}
-                    />
-                </td>
-                <td className="col-image" style={{ width: '55%' }}>
-                    <UploadImageBox
-                        index={index}
-                        productVariantList={productVariantList}
-                        setProductVariantList={setProductVariantList}
-                    />
-                </td>
-            </tr>
-        </>
-    )
+        <tr className='row-product-variant'>
+            <td className='col-colour text-center'>
+                {productVariantList[index].color}
+            </td>
+            <td className='col-size text-center'>
+                {productVariantList[index].size}
+            </td>
+            <td className='col-quantity text-center' style={{ width: '5%' }}>
+                <InputNumber
+                    value={productVariantList[index].quantity}
+                    style={{ width: '100%' }}
+                    onChange={handleQuantityChange}
+                />
+            </td>
+            <td className='col-price text-center' style={{ width: '15%' }}>
+                <InputNumber
+                    value={productVariantList[index].price}
+                    style={{ width: '100%' }}
+                    onChange={handlePriceChange}
+                />
+            </td>
+            <td className='col-price_sale text-center' style={{ width: '15%' }}>
+                <InputNumber
+                    value={productVariantList[index].price_sale}
+                    style={{ width: '100%' }}
+                    onChange={handlePriceSaleChange}
+                />
+            </td>
+            <td className='col-sku text-center' style={{ width: '25%' }}>
+                <Input
+                    value={productVariantList[index].SKU}
+                    style={{ width: '100%' }}
+                    onChange={handleSKUChange}
+                />
+            </td>
+            <td className="col-image" style={{ width: '45%' }}>
+                <UploadImageBox
+                    index={index}
+                    productVariantList={productVariantList}
+                    setProductVariantList={setProductVariantList}
+                />
+            </td>
+        </tr>
+    );
 }
 
 export default RowProductVariant;

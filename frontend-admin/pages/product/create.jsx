@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Router from 'next/router'
 import { Input, InputNumber, Select, Button, Empty } from 'antd';
 import Header from '@/components/Header';
 import CKeditor from '@/components/CKEditor';
@@ -60,6 +61,7 @@ const CreateProductPage = () => {
                 fileList: [],
                 price: '',
                 price_sale:'',
+                SKU:'',
                 type: 'default'
             }))
         );
@@ -100,6 +102,7 @@ const CreateProductPage = () => {
                     dataProductVariant.append('quantity', variant.quantity);
                     dataProductVariant.append('price', variant.price);
                     dataProductVariant.append('price_sale', variant.price_sale);
+                    dataProductVariant.append('SKU', variant.SKU);
                     dataProductVariant.append('type', variant.type);
 
                     for (let file of variant.fileList) {
@@ -113,7 +116,8 @@ const CreateProductPage = () => {
 
                 setIsLoading(false);
                 swtoast.success({ text: 'Thêm sản phẩm thành công!' });
-                clearPage();
+                Router.push('/product/manage');
+                // clearPage();
             } catch (err) {
                 console.error(err);
                 setIsLoading(false);
@@ -146,16 +150,16 @@ const CreateProductPage = () => {
         return true;
     };
 
-    const clearPage = () => {
-        setProductName('');
-        setCategoryId('');
-        setCategoryName('');
-        setPrice(0);
-        setDescription('');
-        setProductVariantList([]);
-        setSelectedColours([]);
-        setSelectedSizes([]);
-    };
+    // const clearPage = () => {
+    //     setProductName('');
+    //     setCategoryId('');
+    //     setCategoryName('');
+    //     setPrice(0);
+    //     setDescription('');
+    //     setProductVariantList([]);
+    //     setSelectedColours([]);
+    //     setSelectedSizes([]);
+    // };
 
     return (
         <div className='create-product-page'>
@@ -277,6 +281,7 @@ const CreateProductPage = () => {
                                 <th className='col-quantity text-center' scope="col">Tồn kho</th>
                                 <th className='col-price text-center' scope="col">Giá</th>
                                 <th className='col-price_sale text-center' scope="col">Giá Sale</th>
+                                <th className='col-sku text-center' scope="col">SKU</th>
                                 {/* <th className='col-type text-center' scope="col">Loại</th> */}
                                 <th className='col-image text-center' scope="col" style={{ width: '55%' }}>Ảnh</th>
                             </tr>
