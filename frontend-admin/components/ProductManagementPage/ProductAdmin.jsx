@@ -129,7 +129,7 @@ const ProductAdmin = (props) => {
                     <tr className="w-100">
                         <td className='col-infor-product'>
                             <p className="name">
-                                {props.product_name + '-' + props.colour_name + '-' + props.size_name}
+                                {props.product_name}
                             </p>
                             <img src={props.product_image} />
                         </td>
@@ -151,9 +151,9 @@ const ProductAdmin = (props) => {
                         <td className="col-createAt">
                             <p>{convertTime(props.created_at)}</p>
                         </td>
-                        <td className="text-danger fw-bold col-state">
+                        {/* <td className="text-danger fw-bold col-state">
                             <Switch checked={props.state} onChange={handleUpdateState} disabled={disabledInputState} />
-                        </td>
+                        </td> */}
                         <td className="text-danger fw-bold col-detail">
                             <Link href={`/product/detail/${props.product_id}`}>
                                 Chi tiết

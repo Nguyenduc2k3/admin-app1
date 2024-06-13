@@ -1,13 +1,25 @@
 import React from 'react';
-import { InputNumber } from 'antd'
+import { InputNumber } from 'antd';
 
 import UploadImageBox from '@/components/UploadImageBox';
 
 const RowProductVariant = ({ index, productVariantList, setProductVariantList }) => {
 
-    const handlePriceChance = (value) => {
+    const handleQuantityChange = (value) => {
         let productVariantListClone = [...productVariantList];
         productVariantListClone[index].quantity = value;
+        setProductVariantList(productVariantListClone);
+    }
+
+    const handlePriceChange = (value) => {
+        let productVariantListClone = [...productVariantList];
+        productVariantListClone[index].price = value;
+        setProductVariantList(productVariantListClone);
+    }
+
+    const handlePriceSaleChange = (value) => {
+        let productVariantListClone = [...productVariantList];
+        productVariantListClone[index].price_sale = value;
         setProductVariantList(productVariantListClone);
     }
 
@@ -15,19 +27,33 @@ const RowProductVariant = ({ index, productVariantList, setProductVariantList })
         <>
             <tr className='row-product-variant'>
                 <td className='col-colour text-center'>
-                    {productVariantList[index].colour_name}
+                    {productVariantList[index].color}
                 </td>
                 <td className='col-size text-center'>
-                    {productVariantList[index].size_name}
+                    {productVariantList[index].size}
                 </td>
                 <td className='col-quantity text-center'>
                     <InputNumber
                         value={productVariantList[index].quantity}
                         style={{ width: '100%' }}
-                        onChange={handlePriceChance}
+                        onChange={handleQuantityChange}
                     />
                 </td>
-                <td className="col-image">
+                <td className='col-price text-center'>
+                    <InputNumber
+                        value={productVariantList[index].price}
+                        style={{ width: '100%' }}
+                        onChange={handlePriceChange}
+                    />
+                </td>
+                <td className='col-price_sale text-center'>
+                    <InputNumber
+                        value={productVariantList[index].price_sale}
+                        style={{ width: '100%' }}
+                        onChange={handlePriceSaleChange}
+                    />
+                </td>
+                <td className="col-image" style={{ width: '55%' }}>
                     <UploadImageBox
                         index={index}
                         productVariantList={productVariantList}
@@ -39,4 +65,4 @@ const RowProductVariant = ({ index, productVariantList, setProductVariantList })
     )
 }
 
-export default RowProductVariant
+export default RowProductVariant;
