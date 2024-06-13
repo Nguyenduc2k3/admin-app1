@@ -28,7 +28,7 @@ const Header = (props) => {
 							border: "1.5px solid #000",
 						}}
 					>
-						{adminInfo.email}
+						{/* {adminInfo.email} */}
 					</Button>
 				</div>
 				<div className="logout-box">
