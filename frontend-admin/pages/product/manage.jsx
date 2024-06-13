@@ -1,55 +1,76 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { Empty } from 'antd'
-import axios from 'axios'
+import { Empty, Spin, Alert } from 'antd';
+import axios from 'axios';
 
-import Header from '@/components/Header'
-import Heading from '@/components/Heading'
-import ProductAdmin from '@/components/ProductManagementPage/ProductAdmin'
-import Router from 'next/router'
+import Header from '@/components/Header';
+import Heading from '@/components/Heading';
+import ProductAdmin from '@/components/ProductManagementPage/ProductAdmin';
+import Router from 'next/router';
 
 import * as actions from '../../store/actions';
 
-// const fakeData = [
-//     {
-//         product_id: 1,
-//         product_variant_id: 1,
-//         product_name: 'Áo Thun Active ProMax',
-//         product_image: 'https://media.istockphoto.com/id/991436974/vi/vec-to/m%E1%BB%99t-s%E1%BB%91-th%C3%B9ng-h%C3%A0ng-gi%E1%BA%A5y-%C4%91%C6%B0%E1%BB%A3c-v%E1%BA%ADn-chuy%E1%BB%83n-b%E1%BA%B1ng-tr%E1%BB%B1c-th%C4%83ng-h%C3%ACnh-minh-h%E1%BB%8Da-vector.jpg?s=2048x2048&w=is&k=20&c=fEuc9_188HXkaeQdyWa6mVA4EUuAk4eyxia8-0x4Tg8=',
-//         colour_name: 'Trắng', size_name: 'S',
-//         price: 0, quantity: 0, state: true, created_at: '2023-03-04T03:50:21.000Z'
-//     },
-//     {
-//         product_id: 1,
-//         product_variant_id: 1,
-//         product_name: 'Áo Thun Active ProMax',
-//         product_image: 'https://media.istockphoto.com/id/991436974/vi/vec-to/m%E1%BB%99t-s%E1%BB%91-th%C3%B9ng-h%C3%A0ng-gi%E1%BA%A5y-%C4%91%C6%B0%E1%BB%A3c-v%E1%BA%ADn-chuy%E1%BB%83n-b%E1%BA%B1ng-tr%E1%BB%B1c-th%C4%83ng-h%C3%ACnh-minh-h%E1%BB%8Da-vector.jpg?s=2048x2048&w=is&k=20&c=fEuc9_188HXkaeQdyWa6mVA4EUuAk4eyxia8-0x4Tg8=',
-//         colour_name: 'Trắng', size_name: 'S',
-//         price: 0, quantity: 0, state: false, created_at: '2023-03-04T03:50:21.000Z'
-//     },
-// ];
-
 const ProductManagementPage = () => {
-    let [listProductVariant, setListProductVariant] = useState([]);
+    const [listProductVariant, setListProductVariant] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const dispatch = useDispatch();
 
     useEffect(() => {
         const getListProductVariant = async () => {
             try {
-                const result = await axios.get('http://localhost:8000/api/products')
-                setListProductVariant(result.data)
+                const [productResult, imagesResult] = await Promise.all([
+                    axios.get('http://localhost:8000/api/products'),
+                    axios.get('http://localhost:8000/api/product-images')
+                ]);
+
+                const products = productResult.data;
+                const images = imagesResult.data;
+
+                const productsWithImages = products.map(product => {
+                    const productImage = images.find(img => img.product_id === product.id);
+                    return {
+                        ...product,
+                        imageUrl: productImage ? productImage.url : null
+                    };
+                });
+
+                setListProductVariant(productsWithImages);
             } catch (err) {
-                console.log(err);
-                // setListProductVariant(fakeData);
+                setError('Failed to fetch product variants or images. Please try again.');
+            } finally {
+                setLoading(false);
             }
-        }
+        };
         getListProductVariant();
-    }, [])
+    }, []);
 
     const refreshProductVariantTable = async () => {
-        const result = await axios.get('http://localhost:8000/api/products')
-        setListProductVariant(result.data)
-    }
+        setLoading(true);
+        try {
+            const [productResult, imagesResult] = await Promise.all([
+                axios.get('http://localhost:8000/api/products'),
+                axios.get('http://localhost:8000/api/product-images')
+            ]);
+
+            const products = productResult.data;
+            const images = imagesResult.data;
+
+            const productsWithImages = products.map(product => {
+                const productImage = images.find(img => img.product_id === product.id);
+                return {
+                    ...product,
+                    imageUrl: productImage ? productImage.url : null
+                };
+            });
+
+            setListProductVariant(productsWithImages);
+        } catch (err) {
+            setError('Failed to refresh product variants or images. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="product-manager">
@@ -62,32 +83,40 @@ const ProductManagementPage = () => {
                 </div>
                 <Heading title="Tất cả sản phẩm" />
                 <div className="wrapper-product-admin table-responsive">
-                    <table className='table product-admin w-100'>
-                        <thead className="w-100 align-middle text-center">
-                            <tr className="fs-6 w-100">
-                                <th title='Tên sản phẩm' className="name col-infor-product">
-                                    Sản phẩm
-                                </th>
-                                <th title='Giá sản phẩm' className="col-price">Giá</th>
-                                {/* <th title='Tồn kho' className="col-quantity">Tồn kho</th> */}
-                                <th title="Thời gian tạo" className="col-createAt">Ngày tạo</th>
-                                {/* <th title="Trạng thái" className="col-state">Trạng thái</th> */}
-                                <th title="Chi tiết" className="col-detail">Chi tiết</th>
-                                <th title="Thao tác" className="col-action manipulation">Thao tác</th>
-                            </tr>
-                        </thead>
-                    </table>
-                    {
-                        listProductVariant.length ?
-                            listProductVariant.map((productVariant, index) => {
-                                return (
+                    {loading ? (
+                        <Spin tip="Loading...">
+                            <table className="table w-100 table-hover align-middle table-bordered" style={{ height: "400px" }}>
+                                <tbody>
+                                    <tr><td colSpan={6}></td></tr>
+                                </tbody>
+                            </table>
+                        </Spin>
+                    ) : error ? (
+                        <Alert message="Error" description={error} type="error" showIcon />
+                    ) : (
+                        <>
+                            <table className='table product-admin w-100'>
+                                <thead className="w-100 align-middle text-center">
+                                    <tr className="fs-6 w-100">
+                                        <th title='Tên sản phẩm' className="name col-infor-product">
+                                            Sản phẩm
+                                        </th>
+                                        <th title='Giá sản phẩm' className="col-price">Giá</th>
+                                        <th title="Thời gian tạo" className="col-createAt">Ngày tạo</th>
+                                        <th title="Chi tiết" className="col-detail">Chi tiết</th>
+                                        <th title="Thao tác" className="col-action manipulation">Thao tác</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                            {listProductVariant.length ? (
+                                listProductVariant.map((productVariant, index) => (
                                     <ProductAdmin
                                         key={index}
                                         product_id={productVariant.id}
                                         product_variant_id={productVariant.product_variant_id}
-                                        product_name={productVariant.nameProduct}
-                                        product_image={productVariant.url}
-                                        colour_name={productVariant.colour_name}
+                                        product_name={productVariant.name_product}
+                                        product_image={productVariant.imageUrl}
+                                        colour_name={productVariant.color}
                                         size_name={productVariant.size}
                                         price={productVariant.price}
                                         quantity={productVariant.quantity}
@@ -95,19 +124,20 @@ const ProductManagementPage = () => {
                                         created_at={productVariant.created_at}
                                         refreshProductVariantTable={refreshProductVariantTable}
                                     />
-                                )
-                            })
-                            :
-                            <table className="table w-100 table-hover align-middle table-bordered" style={{ height: "400px" }}>
-                                <tbody>
-                                    <tr><td colSpan={6}><Empty /></td></tr>
-                                </tbody>
-                            </table>
-                    }
+                                ))
+                            ) : (
+                                <table className="table w-100 table-hover align-middle table-bordered" style={{ height: "400px" }}>
+                                    <tbody>
+                                        <tr><td colSpan={6}><Empty /></td></tr>
+                                    </tbody>
+                                </table>
+                            )}
+                        </>
+                    )}
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default ProductManagementPage
+export default ProductManagementPage;

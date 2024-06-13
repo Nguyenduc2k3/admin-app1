@@ -83,10 +83,10 @@ const CreateProductPage = () => {
             try {
                 setIsLoading(true);
                 const newProduct = {
-                    nameProduct: productName,
+                    name_product: productName,
                     price,
-                    thumbnail: thumbnail,
-                    categoryID: categoryId,
+                    thumbnail,
+                    category_id: categoryId,
                     description
                 };
                 const result = await axios.post(`${homeAPI}/products`, newProduct);
