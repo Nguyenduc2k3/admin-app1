@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { Empty, Spin, Alert, Pagination, Button } from 'antd';
 import axios from 'axios';
+import { homeAPI } from '@/config';
 
 import Header from '@/components/Header';
 import Heading from '@/components/Heading';
@@ -26,23 +27,32 @@ const ProductManagementPage = () => {
         setLoading(true);
         setError(null);
         try {
-            const [productResult, imagesResult] = await Promise.all([
-                axios.get('http://localhost:8000/api/products'),
-                axios.get('http://localhost:8000/api/product-images')
+            const [productResult, imagesResult, variantsResult] = await Promise.all([
+                axios.get(`${homeAPI}/products`),
+                axios.get(`${homeAPI}/product-images`),
+                axios.get(`${homeAPI}/all-variant`)
             ]);
 
             const products = productResult.data;
             const images = imagesResult.data;
+            const variants = variantsResult.data;
 
-            const productsWithImages = products.map(product => {
+            const productsWithVariants = products.map(product => {
                 const productImage = images.find(img => img.product_id === product.id);
+                const productVariant = variants.find(variant => variant.product_id === product.id);
                 return {
                     ...product,
-                    imageUrl: productImage ? productImage.url : null
+                    price: productVariant ? productVariant.price : null,
+                    product_variant_id: productVariant ? productVariant.id : null,
+                    imageUrl: productImage ? productImage.url : null,
+                    color: productVariant ? productVariant.color : null,
+                    size: productVariant ? productVariant.size : null,
+                    quantity: productVariant ? productVariant.quantity : null,
+                    state: productVariant ? productVariant.state : null
                 };
             });
 
-            setListProductVariant(productsWithImages);
+            setListProductVariant(productsWithVariants);
             setCurrentPage(1); // Reset to the first page on data fetch
         } catch (err) {
             setError('Failed to fetch product variants or images. Please try again.');
@@ -86,16 +96,16 @@ const ProductManagementPage = () => {
                             <table className='table product-admin w-100'>
                                 <thead className="w-100 align-middle text-center">
                                     <tr className="fs-6 w-100">
-                                        <th title='Tên sản phẩm' className="name col-infor-product">
-                                            Sản phẩm
-                                        </th>
+                                        <th title='Tên sản phẩm' className="name col-infor-product">Sản phẩm</th>
                                         <th title='Giá sản phẩm' className="col-price">Giá</th>
+                                        {/* <th title="Tồn kho" className="col-quantity">Tồn kho</th> */}
                                         <th title="Thời gian tạo" className="col-createAt">Ngày tạo</th>
                                         <th title="Chi tiết" className="col-detail">Chi tiết</th>
                                         <th title="Thao tác" className="col-action manipulation">Thao tác</th>
                                     </tr>
                                 </thead>
                                 </table>
+                                <tbody>
                                     {currentProducts.length ? (
                                         currentProducts.map((productVariant, index) => (
                                             <ProductAdmin
@@ -113,14 +123,12 @@ const ProductManagementPage = () => {
                                                 refreshProductVariantTable={fetchProductVariants}
                                             />
                                         ))
-                                    ) : 
-                                        <table className="table w-100 table-hover align-middle table-bordered" style={{ height: "400px" }}>
-                                            <tbody>
-                                                <tr><td colSpan={6}><Empty /></td></tr>
-                                            </tbody>
-                                        </table>
-                                    }
-                                
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={6}><Empty /></td>
+                                        </tr>
+                                    )}
+                                </tbody>
                             
                             <Pagination
                                 current={currentPage}

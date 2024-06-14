@@ -8,9 +8,9 @@ import Swal from "sweetalert2";
 
 const ProductAdmin = (props) => {
 
-    const addPointToPrice = (price) => {
-        return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    }
+    // const addPointToPrice = (price) => {
+    //     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    // }
 
     const convertTime = (created_at) => {
         const date = new Date(created_at);
@@ -135,7 +135,7 @@ const ProductAdmin = (props) => {
                         </td>
                         <td className="text-danger fw-bold col-price">
                             <p className='d-flex align-items-center justify-content-center'>
-                                {addPointToPrice(props.price)}
+                                {props.price}
                             </p>
                         </td>
                         {/* <td className="text-danger fw-bold col-quantity">

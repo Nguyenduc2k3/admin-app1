@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import Router from 'next/router'
+import Router from 'next/router';
 import axios from "axios";
 import { Input, InputNumber, Empty, Select, Button } from "antd";
 import Header from "@/components/Header";
@@ -29,6 +29,7 @@ const UpdateProductPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [productVariantList, setProductVariantList] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [productVariantsLoading, setProductVariantsLoading] = useState(false); // state for loading product variants
 
   useEffect(() => {
     setEditorLoaded(true);
@@ -71,11 +72,24 @@ const UpdateProductPage = () => {
         price,
         description,
       });
-      setProductVariantList(await convertProductVariantList(product_variant_list));
+      // Fetch product variants after fetching product details
+      await fetchProductVariants(id);
     } catch (err) {
       console.error("Failed to fetch product:", err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchProductVariants = async (productId) => {
+    try {
+      setProductVariantsLoading(true);
+      const response = await axios.get(`${homeAPI}/products/${productId}/variants`);
+      setProductVariantList(await convertProductVariantList(response.data));
+    } catch (error) {
+      console.error("Failed to fetch product variants:", error);
+    } finally {
+      setProductVariantsLoading(false);
     }
   };
 
@@ -122,6 +136,7 @@ const UpdateProductPage = () => {
     if (validate()) {
       try {
         setIsLoading(true);
+
         const updateProductData = {
           id: productField.productId,
           name_product: productField.productName,
@@ -153,8 +168,8 @@ const UpdateProductPage = () => {
         );
 
         swtoast.success({ text: "Cập nhật sản phẩm thành công!" });
-        Router.push('/product/manage')
-        fetchProduct();
+        Router.push('/product/manage');
+        fetchProduct(); // Refresh product details after update
       } catch (error) {
         console.error("Failed to update product:", error);
         swtoast.error({ text: "Cập nhật sản phẩm thất bại!" });
