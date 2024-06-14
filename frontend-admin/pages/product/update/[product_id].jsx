@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Router from 'next/router';
 import axios from "axios";
-import { Input, InputNumber, Empty, Select, Button } from "antd";
+import { Input, Empty, Select, Button } from "antd";
 import Header from "@/components/Header";
 import CKeditor from "@/components/CKEditor";
 import RowProductVariant from "@/components/UpdateProductPage/RowProductVariant";
@@ -21,15 +21,14 @@ const UpdateProductPage = () => {
     productName: "",
     categoryId: "",
     categoryName: "",
-    price: 0,
-    description: "",
+    description: ""
   });
 
   const [editorLoaded, setEditorLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [productVariantList, setProductVariantList] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [productVariantsLoading, setProductVariantsLoading] = useState(false); // state for loading product variants
+  const [productVariantsLoading, setProductVariantsLoading] = useState(false);
 
   useEffect(() => {
     setEditorLoaded(true);
@@ -48,6 +47,7 @@ const UpdateProductPage = () => {
       setCategories(response.data);
     } catch (error) {
       console.error("Failed to fetch categories:", error);
+      swtoast.error({ text: "Failed to fetch categories" });
     }
   };
 
@@ -60,7 +60,6 @@ const UpdateProductPage = () => {
         name_product,
         category_id,
         name,
-        price,
         description,
         product_variant_list,
       } = result.data;
@@ -69,13 +68,12 @@ const UpdateProductPage = () => {
         productName: name_product,
         categoryId: category_id,
         categoryName: name,
-        price,
-        description,
+        description
       });
-      // Fetch product variants after fetching product details
       await fetchProductVariants(id);
     } catch (err) {
       console.error("Failed to fetch product:", err);
+      swtoast.error({ text: "Failed to fetch product" });
     } finally {
       setIsLoading(false);
     }
@@ -88,6 +86,7 @@ const UpdateProductPage = () => {
       setProductVariantList(await convertProductVariantList(response.data));
     } catch (error) {
       console.error("Failed to fetch product variants:", error);
+      swtoast.error({ text: "Failed to fetch product variants" });
     } finally {
       setProductVariantsLoading(false);
     }
@@ -97,20 +96,20 @@ const UpdateProductPage = () => {
     if (!Array.isArray(productVariants)) return [];
     return await Promise.all(
       productVariants.map(async (variant) => {
-        const fileList = await Promise.all(
-          variant.product_images.map(async ({ path }) => {
-            const response = await fetch(path);
-            const blob = await response.blob();
-            const name = path.slice(-40, -4);
-            const file = new File([blob], name, { type: blob.type });
-            return {
-              uid: name,
-              name: name,
-              url: path,
-              originFileObj: file,
-            };
-          })
-        );
+        // const fileList = await Promise.all(
+        //   variant.product_images.map(async ({ path }) => {
+        //     const response = await fetch(path);
+        //     const blob = await response.blob();
+        //     const name = path.slice(-40, -4);
+        //     const file = new File([blob], name, { type: blob.type });
+        //     return {
+        //       uid: name,
+        //       name: name,
+        //       url: path,
+        //       originFileObj: file,
+        //     };
+        //   })
+        // );
         return {
           productVariantId: variant.id,
           colorId: variant.colorID,
@@ -125,7 +124,6 @@ const UpdateProductPage = () => {
           isActive: variant.is_active,
           createdAt: variant.created_at,
           updatedAt: variant.updated_at,
-          fileList,
         };
       })
     );
@@ -141,22 +139,19 @@ const UpdateProductPage = () => {
           id: productField.productId,
           name_product: productField.productName,
           category_id: productField.categoryId,
-          price: productField.price,
           description: productField.description,
         };
 
-        // Update product details
         await axios.put(`${homeAPI}/products/${product_id}`, updateProductData);
 
-        // Update product variants
         await Promise.all(
           productVariantList.map(async (variant) => {
             const data = new FormData();
             data.append("id", variant.productVariantId);
             data.append("quantity", variant.quantity);
-            variant.fileList.forEach((file) => {
-              data.append("product_images", file.originFileObj);
-            });
+            // variant.fileList.forEach((file) => {
+            //   data.append("product_images", file.originFileObj);
+            // });
             await axios.put(
               `${homeAPI}/products/${product_id}/variants/${variant.productVariantId}`,
               data,
@@ -167,12 +162,12 @@ const UpdateProductPage = () => {
           })
         );
 
-        swtoast.success({ text: "Cập nhật sản phẩm thành công!" });
+        swtoast.success({ text: "Product updated successfully!" });
         Router.push('/product/manage');
-        fetchProduct(); // Refresh product details after update
+        fetchProduct();
       } catch (error) {
         console.error("Failed to update product:", error);
-        swtoast.error({ text: "Cập nhật sản phẩm thất bại!" });
+        swtoast.error({ text: "Failed to update product!" });
       } finally {
         setIsLoading(false);
       }
@@ -180,21 +175,17 @@ const UpdateProductPage = () => {
   };
 
   const validate = () => {
-    const { productName, categoryId, price, description } = productField;
+    const { productName, categoryId, description } = productField;
     if (!productName) {
-      swtoast.error({ text: "Tên sản phẩm không được bỏ trống" });
+      swtoast.error({ text: "Product name is required" });
       return false;
     }
     if (!categoryId) {
-      swtoast.error({ text: "Danh mục sản phẩm không được bỏ trống" });
-      return false;
-    }
-    if (!price) {
-      swtoast.error({ text: "Giá sản phẩm không được bỏ trống" });
+      swtoast.error({ text: "Category is required" });
       return false;
     }
     if (!description) {
-      swtoast.error({ text: "Mô tả sản phẩm không được bỏ trống" });
+      swtoast.error({ text: "Description is required" });
       return false;
     }
     return true;
@@ -254,18 +245,6 @@ const UpdateProductPage = () => {
           </Select>
         </div>
         <div className="mb-3 mt-3">
-          <label className="form-label">Price:</label>
-          <InputNumber
-            className="form-control"
-            name="price"
-            value={productField.price}
-            onChange={(value) =>
-              setProductField((prev) => ({ ...prev, price: value }))
-            }
-            style={{ width: "100%" }}
-          />
-        </div>
-        <div className="mb-3 mt-3">
           <label className="form-label">Description:</label>
           <CKeditor
             name="description"
@@ -291,27 +270,25 @@ const UpdateProductPage = () => {
                 <th className="col-is-active text-center">Active</th>
                 <th className="col-created-at text-center">Created At</th>
                 <th className="col-updated-at text-center">Updated At</th>
-                <th className="col-image text-center">Image</th>
-                <th className="col-delete text-center">Delete</th>
+                <th className="col-images text-center">Images</th>
               </tr>
             </thead>
             <tbody>
-              {productVariantList.length ? (
-                productVariantList.map((item, index) => (
+              {productVariantList.length > 0 ? (
+                productVariantList.map((variant, index) => (
                   <RowProductVariant
                     key={index}
                     index={index}
-                    productVariantList={productVariantList}
+                    productVariant={variant}
+                    categories={categories}
                     setProductVariantList={setProductVariantList}
-                    setIsLoading={setIsLoading}
-                    refreshPage={fetchProduct}
-                    productId={product_id}
+                    productVariantList={productVariantList}
                   />
                 ))
               ) : (
                 <tr>
-                  <td colSpan="12">
-                    <Empty />
+                  <td colSpan="11">
+                    <Empty description="No product variants found" />
                   </td>
                 </tr>
               )}
@@ -319,7 +296,7 @@ const UpdateProductPage = () => {
           </table>
         </div>
         <Button type="primary" htmlType="submit" loading={isLoading}>
-          Update
+          Update Product
         </Button>
       </form>
     </div>

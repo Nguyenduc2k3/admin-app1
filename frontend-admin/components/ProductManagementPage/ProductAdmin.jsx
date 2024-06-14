@@ -69,7 +69,7 @@ const ProductAdmin = (props) => {
         if (state) {
             try {
                 setDisabledInputState(true)
-                await axios.put('http://localhost:8000/api/product-variants',
+                await axios.put('http://localhost:8000/api/all-variant',
                     { product_variant_ids: [props.product_variant_id] })
                 setDisabledInputState(false)
                 props.refreshProductVariantTable()
@@ -82,7 +82,7 @@ const ProductAdmin = (props) => {
         } else {
             try {
                 setDisabledInputState(true)
-                await axios.put('http://localhost:8000/api/product-variants',
+                await axios.put('http://localhost:8000/api/all-variant',
                     { product_variant_ids: [props.product_variant_id] })
                 setDisabledInputState(false)
                 props.refreshProductVariantTable()
@@ -151,9 +151,10 @@ const ProductAdmin = (props) => {
                         <td className="col-createAt">
                             <p>{convertTime(props.created_at)}</p>
                         </td>
-                        {/* <td className="text-danger fw-bold col-state">
-                            <Switch checked={props.state} onChange={handleUpdateState} disabled={disabledInputState} />
-                        </td> */}
+                        <td className="text-danger fw-bold col-state">
+                            {/* <Switch checked={props.state} onChange={handleUpdateState} disabled={disabledInputState} /> */}
+                            <p>{props.state}</p>
+                        </td>
                         <td className="text-danger fw-bold col-detail">
                             <Link href={`/product/detail/${props.product_id}`}>
                                 Chi tiết

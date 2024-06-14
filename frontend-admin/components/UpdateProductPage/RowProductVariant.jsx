@@ -1,97 +1,106 @@
-import React from 'react';
-import axios from 'axios';
-import { InputNumber } from 'antd';
-import { FaTrash } from "react-icons/fa";
+import React, { useState } from "react";
+import { Input, Select, Switch, DatePicker, Upload, Button } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
+import moment from "moment";
 
-import UploadImageBox from '@/components/UploadImageBox';
-import { swalert, swtoast } from "@/mixins/swal.mixin";
+const { Option } = Select;
 
-const RowProductVariant = ({ index, productVariantList, setProductVariantList, setIsLoading, refreshPage, productId }) => {
+const RowProductVariant = ({
+  index,
+  productVariant,
+  setProductVariantList,
+  productVariantList,
+}) => {
+  const [variant, setVariant] = useState(productVariant);
 
-    const handleQuantityChange = (value) => {
-        let updatedProductVariantList = [...productVariantList];
-        updatedProductVariantList[index].quantity = value;
-        setProductVariantList(updatedProductVariantList);
-    };
+  const handleChange = (field, value) => {
+    const updatedVariant = { ...variant, [field]: value };
+    setVariant(updatedVariant);
+    const updatedList = [...productVariantList];
+    updatedList[index] = updatedVariant;
+    setProductVariantList(updatedList);
+  };
 
-    const handleDelete = async () => {
-        swalert
-            .fire({
-                title: "Xóa biến thể sản phẩm",
-                icon: "warning",
-                text: "Bạn muốn xóa biến thể sản phẩm này?",
-                showCloseButton: true,
-                showCancelButton: true,
-            })
-            .then(async (result) => {
-                if (result.isConfirmed) {
-                    try {
-                        setIsLoading(true);
-                        await axios.delete(`http://localhost:8000/api/products/${productId}/variants/${productVariantList[index].productVariantId}`);
-                        refreshPage();
-                        swtoast.success({
-                            text: 'Xóa biến thể sản phẩm thành công!'
-                        });
-                    } catch (err) {
-                        console.error(err);
-                        swtoast.error({
-                            text: 'Xảy ra lỗi khi xóa biến thể sản phẩm vui lòng thử lại!'
-                        });
-                    } finally {
-                        setIsLoading(false);
-                    }
-                }
-            });
-    };
+  const handleFileChange = ({ fileList }) => {
+    handleChange("fileList", fileList);
+  };
 
-    return (
-        <tr className='row-product-variant'>
-            <td className='col-colour text-center'>
-                {productVariantList[index].color}
-            </td>
-            <td className='col-size text-center'>
-                {productVariantList[index].size}
-            </td>
-            <td className='col-quantity text-center'>
-                <InputNumber
-                    value={productVariantList[index].quantity}
-                    style={{ width: '100%' }}
-                    onChange={handleQuantityChange}
-                />
-            </td>
-            <td className='col-price text-center'>
-                {productVariantList[index].price}
-            </td>
-            <td className='col-price-sale text-center'>
-                {productVariantList[index].price_sale}
-            </td>
-            <td className='col-type text-center'>
-                {productVariantList[index].type}
-            </td>
-            <td className='col-sku text-center'>
-                {productVariantList[index].SKU}
-            </td>
-            <td className='col-is-active text-center'>
-                {productVariantList[index].isActive ? 'Yes' : 'No'}
-            </td>
-            <td className='col-created-at text-center'>
-                {new Date(productVariantList[index].createdAt).toLocaleDateString()}
-            </td>
-            <td className='col-updated-at text-center'>
-                {new Date(productVariantList[index].updatedAt).toLocaleDateString()}
-            </td>
-            <td className="col-image">
-                <UploadImageBox
-                    index={index}
-                    productVariantList={productVariantList}
-                    setProductVariantList={setProductVariantList}
-                />
-            </td>
-            <td className='col-delete text-center'>
-                <FaTrash style={{ cursor: "pointer" }} title='Xóa' className="text-danger" onClick={handleDelete} />
-            </td>
-        </tr>
-    );
+  return (
+    <tr className="row-product-variant">
+      <td className="col-colour text-center">
+        <Input
+          value={productVariant.colorName}
+          onChange={(e) => handleChange("colorName", e.target.value)}
+        />
+      </td>
+      <td className="col-size text-center">
+        <Input
+          value={productVariant.sizeName}
+          onChange={(e) => handleChange("sizeName", e.target.value)}
+        />
+      </td>
+      <td className="col-quantity text-center">
+        <Input
+          type="number"
+          value={variant.quantity}
+          onChange={(e) => handleChange("quantity", e.target.value)}
+        />
+      </td>
+      <td className="col-price text-center">
+        <Input
+          type="number"
+          value={variant.price}
+          onChange={(e) => handleChange("price", e.target.value)}
+        />
+      </td>
+      <td className="col-price-sale text-center">
+        <Input
+          type="number"
+          value={variant.priceSale}
+          onChange={(e) => handleChange("priceSale", e.target.value)}
+        />
+      </td>
+      <td className="col-type text-center">
+        <Input
+          value={variant.type}
+          onChange={(e) => handleChange("type", e.target.value)}
+        />
+      </td>
+      <td className="col-sku text-center">
+        <Input
+          value={variant.SKU}
+          onChange={(e) => handleChange("SKU", e.target.value)}
+        />
+      </td>
+      <td className="col-is-active text-center">
+        <Switch
+          checked={variant.isActive}
+          onChange={(checked) => handleChange("isActive", checked)}
+        />
+      </td>
+      <td className="col-created-at text-center">
+        <DatePicker
+          value={moment(variant.createdAt)}
+          onChange={(date) => handleChange("createdAt", date)}
+        />
+      </td>
+      <td className="col-updated-at text-center">
+        <DatePicker
+          value={moment(variant.updatedAt)}
+          onChange={(date) => handleChange("updatedAt", date)}
+        />
+      </td>
+      <td className="col-images text-center">
+        <Upload
+          listType="picture"
+          fileList={variant.fileList}
+          onChange={handleFileChange}
+        >
+          <Button icon={<UploadOutlined />}>Upload</Button>
+        </Upload>
+      </td>
+    </tr>
+  );
 };
 
 export default RowProductVariant;

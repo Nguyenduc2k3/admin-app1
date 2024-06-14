@@ -62,7 +62,8 @@ const CreateProductPage = () => {
                 price: '',
                 price_sale:'',
                 SKU:'',
-                type: 'default'
+                type: 'default',
+                is_active: 1
             }))
         );
         setProductVariantList(productVariantListTemp);
@@ -86,10 +87,10 @@ const CreateProductPage = () => {
                 setIsLoading(true);
                 const newProduct = {
                     name_product: productName,
-                    price,
                     thumbnail,
                     category_id: categoryId,
-                    description
+                    description,
+                    views: 0
                 };
                 const result = await axios.post(`${homeAPI}/products`, newProduct);
                 const productID = result.data.id;
@@ -104,6 +105,7 @@ const CreateProductPage = () => {
                     dataProductVariant.append('price_sale', variant.price_sale);
                     dataProductVariant.append('SKU', variant.SKU);
                     dataProductVariant.append('type', variant.type);
+                    dataProductVariant.append('is_active', variant.is_active);
 
                     for (let file of variant.fileList) {
                         dataProductVariant.append('images', file.originFileObj);
@@ -133,10 +135,6 @@ const CreateProductPage = () => {
         }
         if (!categoryId) {
             swtoast.error({ text: 'Danh mục sản phẩm không được bỏ trống' });
-            return false;
-        }
-        if (!price) {
-            swtoast.error({ text: 'Giá sản phẩm không được bỏ trống' });
             return false;
         }
         if (!description) {
@@ -195,16 +193,7 @@ const CreateProductPage = () => {
                             ))}
                         </Select>
                     </div>
-                    <div className="col-6">
-                        <label htmlFor='product-price' className="fw-bold">Giá sản phẩm:</label>
-                        <br />
-                        <InputNumber
-                            id='product-price' placeholder='Nhập giá sản phẩm'
-                            value={price === 0 ? null : price}
-                            style={{ width: '100%' }}
-                            onChange={setPrice}
-                        />
-                    </div>
+
                     <div className="col-6">
                         <label htmlFor='thumbnail' className="fw-bold">Ảnh thu nhỏ:</label>
                         <Input

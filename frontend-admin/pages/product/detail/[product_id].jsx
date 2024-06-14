@@ -1,94 +1,150 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
-import { swalert, swtoast } from "@/mixins/swal.mixin";
-import RowProductVariant from "@/components/DetailProductPage/RowProductVariant";
+import { Spin, Alert, Button, Table, Image } from 'antd';
+import { homeAPI } from '@/config';
+import { swtoast } from "@/mixins/swal.mixin";
 
 const DetailProductPage = () => {
     const router = useRouter();
     const { product_id } = router.query;
-    const [product, setProduct] = useState({});
-    const [productVariantList, setProductVariantList] = useState([]);
-    const [rowProductVariant, setRowProductVariant] = useState([]);
+    const [product, setProduct] = useState(null);
+    const [productVariants, setProductVariants] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    useEffect(() => {
-        if (product_id) {
-            fetchProduct(product_id);
+    const fetchProductDetails = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const [productResult, imagesResult, variantsResult] = await Promise.all([
+                axios.get(`${homeAPI}/products/${product_id}`),
+                axios.get(`${homeAPI}/product-images/`),
+                axios.get(`${homeAPI}/all-variant`)
+            ]);
+
+            const product = productResult.data;
+            const images = imagesResult.data;
+            const variants = variantsResult.data.filter(variant => variant.product_id === parseInt(product_id));
+
+            const variantsWithImages = variants.map(variant => ({
+                ...variant,
+                images: images.filter(img => img.variant_id === variant.id)
+            }));
+
+            setProduct(product);
+            setProductVariants(variantsWithImages);
+        } catch (error) {
+            console.error('Error fetching product details:', error);
+            setError('Error fetching product details. Please try again.');
+            swtoast.error({ text: 'Error fetching product details. Please try again.' });
+        } finally {
+            setIsLoading(false);
         }
     }, [product_id]);
 
     useEffect(() => {
-        setRowProductVariant(
-          productVariantList.map((variant, index) => (
-            <RowProductVariant
-              key={index}
-              index={index}
-              productVariantList={productVariantList}
-              setProductVariantList={setProductVariantList}
-              setIsLoading={setIsLoading}
-              refreshPage={refreshPage}
-            />
-          ))
-        );
-      }, [productVariantList]);
-
-    const fetchProduct = async (product_id) => {
-        try {
-            const response = await axios.get(`http://localhost:8000/api/products/${product_id}`);
-            setProduct(response.data);
-        } catch (error) {
-            console.error('Error fetching product:', error);
-            // Handle error with SweetAlert2
-            swtoast.error({ text: 'Error fetching product details. Please try again.' });
+        if (product_id) {
+            fetchProductDetails();
         }
-    };
+    }, [product_id, fetchProductDetails]);
 
-    const convertProductVariantList = async (productVariants) => {
-        const variants = await Promise.all(
-          productVariants.map(async (variant) => {
-            const fileList = await Promise.all(
-              variant.product_images.map(async ({ path }) => {
-                const response = await fetch(path);
-                const blob = await response.blob();
-                const name = path.slice(-40, -4);
-                const file = new File([blob], name, { type: blob.type });
-                return {
-                  uid: name,
-                  name: name,
-                  url: path,
-                  originFileObj: file,
-                };
-              })
-            );
-            return {
-              productVariantId: variant.id,
-              colourId: variant.colorID,
-              colourName: variant.color,
-              sizeId: variant.sizeID,
-              sizeName: variant.size,
-              quantity: variant.quantity,
-              fileList,
-            };
-          })
-        );
-        return variants;
-      };
-
+    const columns = [
+        {
+            title: 'Color',
+            dataIndex: 'color',
+            key: 'color',
+        },
+        {
+            title: 'Size',
+            dataIndex: 'size',
+            key: 'size',
+        },
+        {
+            title: 'Quantity',
+            dataIndex: 'quantity',
+            key: 'quantity',
+        },
+        {
+            title: 'Price',
+            dataIndex: 'price',
+            key: 'price',
+        },
+        {
+            title: 'Sale Price',
+            dataIndex: 'price_sale',
+            key: 'price_sale',
+        },
+        {
+            title: 'Type',
+            dataIndex: 'type',
+            key: 'type',
+        },
+        {
+            title: 'SKU',
+            dataIndex: 'SKU',
+            key: 'SKU',
+        },
+        {
+            title: 'Active',
+            dataIndex: 'is_active',
+            key: 'is_active',
+            render: is_active => (is_active ? 'Yes' : 'No')
+        },
+        {
+            title: 'Created At',
+            dataIndex: 'created_at',
+            key: 'created_at',
+        },
+        {
+            title: 'Updated At',
+            dataIndex: 'updated_at',
+            key: 'updated_at',
+        },
+        {
+            title: 'Images',
+            dataIndex: 'images',
+            key: 'images',
+            render: images => (
+                <div>
+                    {images.map(image => (
+                        <Image key={image.id} src={image.url} width={50} />
+                    ))}
+                </div>
+            )
+        }
+    ];
 
     return (
         <div className="detail-product-page">
-            {product ? (
+            {isLoading ? (
+                <Spin tip="Loading...">
+                    <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
+                </Spin>
+            ) : error ? (
+                <Alert message="Error" description={error} type="error" showIcon />
+            ) : product ? (
                 <div className="product-details">
-                    <h2>{product.nameProduct}</h2>
-                    <p>Price: {product.price}</p>
+                    <h2>{product.name_product}</h2>
                     <p>Description: {product.description}</p>
                     <p>Category: {product.categoryID}</p>
-                    <p>Variant: {product.quantity}</p>
                     {/* Render other product details */}
 
+                    <div className="product-variants">
+                        <h3>Product Variants</h3>
+                        <Table
+                            dataSource={productVariants}
+                            columns={columns}
+                            rowKey="id"
+                            pagination={false}
+                        />
+                    </div>
+                    <Button onClick={() => router.push('/product/manage')} type="primary">
+                        Back to Product Management
+                    </Button>
                 </div>
             ) : (
-                <p>Loading...</p>
+                <p>Product not found</p>
             )}
         </div>
     );
