@@ -153,7 +153,7 @@ const ProductAdmin = (props) => {
                         </td>
                         <td className="text-danger fw-bold col-state">
                             {/* <Switch checked={props.state} onChange={handleUpdateState} disabled={disabledInputState} /> */}
-                            <p>{props.state}</p>
+                            <p>{props.state == 1 ? "Đang hiện" : "Đã ẩn"}</p>
                         </td>
                         <td className="text-danger fw-bold col-detail">
                             <Link href={`/product/detail/${props.product_id}`}>
